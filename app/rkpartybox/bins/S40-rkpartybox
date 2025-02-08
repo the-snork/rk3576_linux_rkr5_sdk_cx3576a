@@ -1,0 +1,21 @@
+#! /bin/sh
+sync
+
+start() {
+	if [ ! -e /oem/partybox_app.sh ]; then
+		ln -s /usr/bin/partybox_app.sh /oem/partybox_app.sh
+	fi
+	chmod 777 /oem/partybox_app.sh
+	/oem/partybox_app.sh &
+}
+
+case "$1" in
+  start)
+	start
+	;;
+  *)
+	echo "Usage: $0 {start}"
+	exit 1
+esac
+
+exit $?

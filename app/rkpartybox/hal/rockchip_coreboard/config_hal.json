@@ -1,0 +1,38 @@
+{
+	"pbox_hw_config": {
+        "rec_path" : {
+            "poor_count" : 0,
+            "rec_array" : [
+                {
+                    "card_name" : "hw:0,0",
+                    "sample_rate" : 48000,
+                    "channels" : 4,
+                    "chl_array" : ["REC_CHL_MIC", "REC_CHL_GUITAR", "REC_CHL_REF_HOLD", "REC_CHL_REF_HOLD"]
+                }
+            ],
+            "mic_guitars" : ["mic", "guitar"]
+        },
+
+        "spk" : {
+            "card_name" : "hw:0,0",
+            "sample_rate" : 48000,
+            "channels" : 6,
+            "bit_width" : 16
+        },
+
+        "input_sources" : {
+            "srcs_with_order" : ["SRC_EXT_BT", "SRC_EXT_USB", "SRC_EXT_AUX"],
+            "sources_info": [
+                {"source": "SRC_EXT_BT", "card": "hw:1,0"},
+                {"source": "SRC_EXT_USB", "card": "hw:1,0"},
+                {"source": "SRC_EXT_AUX", "card": "hw:1,0"}
+            ]
+        },
+
+        "saradc_key" : {
+            "enable" : true,
+            "min_adc_value": 0,
+            "max_adc_value": 1023
+        }
+	}
+}

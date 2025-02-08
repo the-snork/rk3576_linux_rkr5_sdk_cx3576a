@@ -1,0 +1,19 @@
+{
+	"lighting_configs": {
+		"drum" : {
+			"status" : "enable",
+			"bw" : 1.5,
+			"lpf_freq" : 120,
+			"drum_freq_low" : 5,
+			"drum_freq_high" : 500,
+			"drum_freq_correct" : 250,
+			"threhold" : 1000,
+			"detect_num" : 8,
+			"pre_num" : 3,
+			"after_num" : 4,
+			"pre_ratio" : 1.5,
+			"after_ratio" : 0.8,
+			"amp_ratio" : 0.9
+		}
+	}
+}
