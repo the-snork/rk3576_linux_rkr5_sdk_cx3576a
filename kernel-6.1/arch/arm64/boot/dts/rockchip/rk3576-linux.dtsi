@@ -5,12 +5,6 @@
  */
 
 / {
-	aliases {
-		mmc0 = &sdhci;
-		mmc1 = &sdmmc;
-		mmc2 = &sdio;
-	};
-
 	chosen: chosen {
 		bootargs = "earlycon=uart8250,mmio32,0x2ad40000 console=ttyFIQ0 root=PARTUUID=614e0000-0000 rw rootwait rcupdate.rcu_expedited=1 rcu_nocbs=all";
 	};
@@ -26,13 +20,6 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&uart0m0_xfer>;
 		status = "okay";
-	};
-
-	firmware {
-		optee: optee {
-			compatible = "linaro,optee-tz";
-			method = "smc";
-		};
 	};
 
 	reserved-memory {
