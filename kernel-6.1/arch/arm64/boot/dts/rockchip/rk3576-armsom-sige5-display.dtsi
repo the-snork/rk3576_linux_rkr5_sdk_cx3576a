@@ -255,7 +255,7 @@
 };
 
 &route_dsi {
-	status = "disabled";
+	status = "okay";
 };
 
 &dsi_in_vp1 {
