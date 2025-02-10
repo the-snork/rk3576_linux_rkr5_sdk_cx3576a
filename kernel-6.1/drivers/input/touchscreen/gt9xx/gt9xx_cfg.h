@@ -53,7 +53,7 @@ static u8 gtp_dat_9_7[] = {
 static u8 gtp_dat_10_1[] = {
 	/* TODO:Puts your update firmware data here! */
 	/* <1200, 1920> 10.1 */
-	#include "WGJ10187_GT9271_Config_20140623_104014_0X41.cfg"
+	#include "100100_GT9271_Config_20200901_1200_1920_v65.cfg"
 };
 
 static u8 gtp_dat_7[] = {
