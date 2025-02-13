@@ -472,33 +472,6 @@
 	};
 };
 
-// &i2c7 {
-// 	status = "okay";
-// 	pinctrl-names = "default";
-// 	pinctrl-0 = <&i2c7m1_xfer>;
-
-
-// 	icm42607_acc: icm_acc@68 {
-// 		status = "okay";
-// 		compatible = "icm42607_acc";
-// 		reg = <0x68>;
-// 		irq-gpio = <&gpio1 RK_PD5 IRQ_TYPE_EDGE_RISING>;
-// 		irq_enable = <0>;
-// 		poll_delay_ms = <30>;
-// 		type = <SENSOR_TYPE_ACCEL>;
-// 		layout = <4>;
-// 	};
-
-// 	icm42607_gyro: icm_gyro@68 {
-// 		status = "okay";
-// 		compatible = "icm42607_gyro";
-// 		reg = <0x68>;
-// 		poll_delay_ms = <30>;
-// 		type = <SENSOR_TYPE_GYROSCOPE>;
-// 		layout = <4>;
-// 	};
-// };
-
 &pwm2_8ch_7 {
 	status = "okay";
 	pinctrl-0 = <&pwm2m3_ch7>;
@@ -602,7 +575,7 @@
 };
 
 &sdio {
-	max-frequency = <150000000>;
+	max-frequency = <100000000>;
 	no-sd;
 	no-mmc;
 	bus-width = <4>;
