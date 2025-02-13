@@ -1,0 +1,4 @@
+output/
+debian/binary/
+rockdev/
+debian/linaro*
