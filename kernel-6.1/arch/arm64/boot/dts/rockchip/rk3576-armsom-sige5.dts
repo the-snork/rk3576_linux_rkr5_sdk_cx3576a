@@ -7,9 +7,8 @@
 /dts-v1/;
 
 #include "rk3576-armsom-sige5.dtsi"
-//#include "rk3576-evb1-cam-dcphy0.dtsi"
 #include "rk3576-armsom-sige5-camera-ov13850.dtsi"
-//#include "rk3576-armsom-sige5-display.dtsi"
+//#include "rk3576-armsom-sige5-display-10hd.dtsi"
 #include "rk3576-linux.dtsi"
 
 / {
