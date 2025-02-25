@@ -272,6 +272,7 @@
 		max-x = <1200>;
 		max-y = <1920>;
 		tp-size = <9271>;  //GT9271触摸芯片
+		// tp-size = <92711>; //GT9271触摸芯片 横屏
 		tp-supply = <&vcc_lcd_mipi1>;
 
 		configfile-num = <1>;   //给CTP_CFG_GROUP1赋值：gt9xx_cfg.h配置gtp_dat_8_9_1[]的cfg：GT9271_Config_20170526.cfg  
