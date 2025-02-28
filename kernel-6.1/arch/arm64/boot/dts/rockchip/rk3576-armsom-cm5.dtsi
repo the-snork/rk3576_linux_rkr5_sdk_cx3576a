@@ -12,7 +12,7 @@
 #include <dt-bindings/display/rockchip_vop.h>
 #include "rk3576.dtsi"
 #include "rk3576-rk806.dtsi"
-#include "rk3576-armsom-cm5-io-display-10hd.dtsi"
+//#include "rk3576-armsom-cm5-io-display-10hd.dtsi"
 
 / {
 	model = "ArmSoM CM5 IO";
@@ -238,6 +238,10 @@
 };
 
 &tsadc {
+	status = "okay";
+};
+
+&uart3 {
 	status = "okay";
 };
 
