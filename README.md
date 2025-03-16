@@ -9,11 +9,7 @@ Forked from armsom.
 see [here](https://wiki.t-firefly.com/en/ROC-RK3576-PC/linux_compile.html)
 
 ```
-sudo apt-get install repo git ssh make gcc libssl-dev liblz4-tool \
-expect g++ patchelf chrpath gawk texinfo chrpath diffstat binfmt-support \
-qemu-user-static live-build bison flex fakeroot cmake gcc-multilib g++-multilib \
-unzip \
-device-tree-compiler ncurses-dev
+sudo apt-get install make gcc libssl-dev liblz4-tool expect g++ patchelf chrpath gawk texinfo chrpath diffstat binfmt-support qemu-user-static live-build bison flex fakeroot cmake gcc-multilib g++-multilib unzip device-tree-compiler libncurses-dev
 ```
 
 
