@@ -201,7 +201,7 @@
 
 	wireless_wlan: wireless-wlan {
 		compatible = "wlan-platdata";
-		wifi_chip_type = "ap6275s";
+		wifi_chip_type = "rtl8852bs";
         clocks = <&hym8563>; //如果使用hym8563，只能配置一个
         clock-names = "ext_clock";
 		pinctrl-names = "default";
@@ -352,7 +352,6 @@
 
 &i2c0 {
 	status = "okay";
-	pinctrl-0 = <&i2c0m1_xfer>;
 	usbc1: fusb302@22 {
 		compatible = "fcs,fusb302";
 		reg = <0x22>;
