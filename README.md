@@ -1,6 +1,21 @@
-# rk3576_linux_rkr5_sdk
+# rk3576_linux_rkr5_sdk_cx3576a
 
-This SDK is used to compile firmware for Debian and buildroot systems for armsom products sige5 and cm5io.
+This SDK is used to compile firmware for Debian and buildroot systems for touchtec / jawest CX3576-A.
+
+Forked from armsom.
+
+## Preparation ##
+
+see [here](https://wiki.t-firefly.com/en/ROC-RK3576-PC/linux_compile.html)
+
+```
+sudo apt-get install repo git ssh make gcc libssl-dev liblz4-tool \
+expect g++ patchelf chrpath gawk texinfo chrpath diffstat binfmt-support \
+qemu-user-static live-build bison flex fakeroot cmake gcc-multilib g++-multilib \
+unzip \
+device-tree-compiler ncurses-dev
+```
+
 
 ## compile step
 
