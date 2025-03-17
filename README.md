@@ -14,6 +14,7 @@ sudo apt-get install make gcc libssl-dev liblz4-tool expect g++ patchelf chrpath
 
 ```
 sudo ln -s /usr/sbin/mke2fs /usr/bin/mke2fs
+sudo ln -s /usr/sbin/debootstrap /usr/bin/debootstrap
 ```
 
 
