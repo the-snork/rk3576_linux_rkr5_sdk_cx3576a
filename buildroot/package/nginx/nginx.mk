@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-NGINX_VERSION = 1.24.0
+NGINX_VERSION = 1.26.3
 NGINX_SITE = https://nginx.org/download
 NGINX_LICENSE = BSD-2-Clause
 NGINX_LICENSE_FILES = LICENSE
@@ -93,7 +93,7 @@ endif
 # - pcre-jit          (want to rebuild pcre)
 
 # Notes:
-# * Feature/module option are *not* symetric.
+# * Feature/module option are *not* symmetric.
 #   If a feature is on by default, only its --without-xxx option exists;
 #   if a feature is off by default, only its --with-xxx option exists.
 # * The configure script fails if unknown options are passed on the command
@@ -285,16 +285,6 @@ endif
 ifeq ($(BR2_PACKAGE_NGINX_MODSECURITY),y)
 NGINX_DEPENDENCIES += nginx-modsecurity
 NGINX_CONF_OPTS += --add-module=$(NGINX_MODSECURITY_DIR)
-endif
-
-ifeq ($(BR2_PACKAGE_NGINX_RTMP),y)
-NGINX_DEPENDENCIES += nginx-rtmp
-NGINX_CONF_OPTS += --add-module=$(NGINX_RTMP_DIR)
-endif
-
-ifeq ($(BR2_PACKAGE_NGINX_HTTP_FLV_LIVE),y)
-NGINX_DEPENDENCIES += nginx-http-flv-live
-NGINX_CONF_OPTS += --add-module=$(NGINX_HTTP_FLV_LIVE_DIR)
 endif
 
 # Debug logging

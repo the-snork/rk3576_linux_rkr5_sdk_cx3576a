@@ -13,11 +13,13 @@ WESTON_CPE_ID_VENDOR = wayland
 WESTON_INSTALL_STAGING = YES
 
 WESTON_DEPENDENCIES = host-pkgconf wayland wayland-protocols \
-	libdisplay-info libxkbcommon pixman libpng udev cairo libinput libdrm
+	libxkbcommon pixman libpng udev cairo libinput libdisplay-info libdrm \
+	seatd
 
 WESTON_CONF_OPTS = \
 	-Ddoc=false \
 	-Dremoting=false \
+	-Dbackend-vnc=false \
 	-Dtools=calibrator,debug,info,terminal,touch-calibrator
 
 ifeq ($(BR2_PACKAGE_WESTON_SIMPLE_CLIENTS),y)
@@ -48,7 +50,7 @@ else
 WESTON_CONF_OPTS += -Dimage-webp=false
 endif
 
-ifeq ($(BR2_PACKAGE_HAS_LIBEGL_WAYLAND)$(BR2_PACKAGE_HAS_LIBGBM)$(BR2_PACKAGE_HAS_LIBGLES),yyy)
+ifeq ($(BR2_PACKAGE_HAS_LIBEGL)$(BR2_PACKAGE_HAS_LIBGBM)$(BR2_PACKAGE_HAS_LIBGLES),yyy)
 WESTON_CONF_OPTS += -Drenderer-gl=true
 WESTON_DEPENDENCIES += libegl libgbm libgles
 ifeq ($(BR2_PACKAGE_WESTON_SIMPLE_CLIENTS),y)
@@ -65,24 +67,6 @@ WESTON_CONF_OPTS += \
 	-Drenderer-gl=false \
 	-Dpipewire=false \
 	-Dbackend-pipewire=false
-endif
-
-ifeq ($(BR2_PACKAGE_WESTON_VNC),y)
-ifeq ($(BR2_PACKAGE_LINUX_PAM),y)
-WESTON_DEPENDENCIES += linux-pam
-endif
-
-WESTON_DEPENDENCIES += neatvnc
-WESTON_CONF_OPTS += -Dbackend-vnc=true
-else
-WESTON_CONF_OPTS += -Dbackend-vnc=false
-endif
-
-ifeq ($(BR2_PACKAGE_WESTON_PIPEWIRE),y)
-WESTON_CONF_OPTS += -Dbackend-pipewire=true
-WESTON_DEPENDENCIES += pipewire
-else
-WESTON_CONF_OPTS += -Dbackend-pipewire=false
 endif
 
 WESTON_CONF_OPTS += -Dsimple-clients=$(subst $(space),$(comma),$(strip $(WESTON_SIMPLE_CLIENTS)))
@@ -193,37 +177,5 @@ WESTON_DEPENDENCIES += pango
 else
 WESTON_CONF_OPTS += -Ddemo-clients=false
 endif
-
-ifeq ($(BR2_PACKAGE_ROCKCHIP_RGA),y)
-WESTON_DEPENDENCIES += rockchip-rga
-endif
-
-ifeq ($(BR2_PACKAGE_WESTON_DEFAULT_PIXMAN),y)
-define WESTON_INSTALL_PIXMAN_INI
-        $(INSTALL) -D -m 0644 $(WESTON_PKGDIR)/pixman.ini \
-                $(TARGET_DIR)/etc/xdg/weston/weston.ini.d/01-pixman.ini
-endef
-
-WESTON_POST_INSTALL_TARGET_HOOKS += WESTON_INSTALL_PIXMAN_INI
-endif
-
-define WESTON_INSTALL_TARGET_ENV
-        $(INSTALL) -D -m 0644 $(WESTON_PKGDIR)/weston.sh \
-                $(TARGET_DIR)/etc/profile.d/weston.sh
-endef
-
-WESTON_POST_INSTALL_TARGET_HOOKS += WESTON_INSTALL_TARGET_ENV
-
-define WESTON_INSTALL_TARGET_SCRIPTS
-        $(INSTALL) -D -m 0755 $(WESTON_PKGDIR)/weston-calibration-helper.sh \
-                $(TARGET_DIR)/bin/weston-calibration-helper.sh
-endef
-
-WESTON_POST_INSTALL_TARGET_HOOKS += WESTON_INSTALL_TARGET_SCRIPTS
-
-define WESTON_INSTALL_INIT_SYSV
-	$(INSTALL) -D -m 755 $(WESTON_PKGDIR)/S49weston \
-		$(TARGET_DIR)/etc/init.d/S49weston
-endef
 
 $(eval $(meson-package))

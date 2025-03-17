@@ -7,15 +7,12 @@ DAEMON=/sbin/dhcpcd
 CONFIG=/etc/dhcpcd.conf
 PIDFILE=/var/run/dhcpcd/pid
 
-DHCPCD_ARGS="-AL"
-
 [ -f $CONFIG ] || exit 0
 
 case "$1" in
   start)
 	echo "Starting dhcpcd..."
-	start-stop-daemon -S -x "$DAEMON" -p "$PIDFILE" -- -f "$CONFIG" \
-		$DHCPCD_ARGS
+	start-stop-daemon -S -x "$DAEMON" -p "$PIDFILE" -- -f "$CONFIG"
 	;;
   stop)
 	echo "Stopping dhcpcd..."

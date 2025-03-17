@@ -1,7 +1,5 @@
 config BR2_PACKAGE_STRACE
 	bool "strace"
-	# needs at least kernel headers 4.0 on nios2
-	depends on BR2_TOOLCHAIN_HEADERS_AT_LEAST_4_0 || !BR2_nios2
 	# needs at least kernel headers 5.0 on xtensa
 	depends on BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_0 || !BR2_xtensa
 	# needs at least kernel headers 5.0 on musl aarch64
@@ -19,10 +17,6 @@ config BR2_PACKAGE_STRACE
 
 	  https://strace.io
 
-comment "strace needs a toolchain w/ headers >= 4.0 on nios2"
-	depends on BR2_nios2
-	depends on !BR2_TOOLCHAIN_HEADERS_AT_LEAST_4_0
-
 comment "strace needs a toolchain w/ headers >= 5.0 on xtensa"
 	depends on BR2_xtensa
 	depends on !BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_0
@@ -31,11 +25,3 @@ comment "strace needs a musl toolchain w/ headers >= 5.0 on aarch64"
 	depends on BR2_aarch64 || BR2_aarch64_be
 	depends on BR2_TOOLCHAIN_USES_MUSL
 	depends on !BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_0
-
-if BR2_PACKAGE_STRACE
-
-config BR2_PACKAGE_STRACE_STATIC
-	bool "Enable static"
-	default y if BR2_STATIC_LIBS
-
-endif

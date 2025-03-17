@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-GST1_PLUGINS_BASE_VERSION = 1.22.9
+GST1_PLUGINS_BASE_VERSION = 1.22.12
 GST1_PLUGINS_BASE_SOURCE = gst-plugins-base-$(GST1_PLUGINS_BASE_VERSION).tar.xz
 GST1_PLUGINS_BASE_SITE = https://gstreamer.freedesktop.org/src/gst-plugins-base
 GST1_PLUGINS_BASE_INSTALL_STAGING = YES
@@ -35,14 +35,6 @@ GST1_PLUGINS_BASE_CONF_OPTS += -Dtools=disabled
 endif
 
 GST1_PLUGINS_BASE_DEPENDENCIES = gstreamer1 $(TARGET_NLS_DEPENDENCIES)
-
-ifeq ($(BR2_PACKAGE_LIBDRM),y)
-GST1_PLUGINS_BASE_DEPENDENCIES += libdrm
-endif
-
-ifeq ($(BR2_PACKAGE_ROCKCHIP_RGA),y)
-GST1_PLUGINS_BASE_DEPENDENCIES += rockchip-rga
-endif
 
 GST1_PLUGINS_BASE_LDFLAGS = $(TARGET_LDFLAGS) $(TARGET_NLS_LIBS)
 

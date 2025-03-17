@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-FLUIDSYNTH_VERSION = 2.3.4
+FLUIDSYNTH_VERSION = 2.4.3
 FLUIDSYNTH_SITE = $(call github,FluidSynth,fluidsynth,v$(FLUIDSYNTH_VERSION))
 FLUIDSYNTH_LICENSE = LGPL-2.1+
 FLUIDSYNTH_LICENSE_FILES = LICENSE
@@ -43,7 +43,7 @@ ifeq ($(BR2_PACKAGE_FLUIDSYNTH_LIBSNDFILE),y)
 FLUIDSYNTH_CONF_OPTS += -Denable-libsndfile=1
 FLUIDSYNTH_DEPENDENCIES += libsndfile
 else
-FLUIDSYNTH_CONF_OPTS += -Denable-libsndfile=0 -Denable-libinstpatch=0
+FLUIDSYNTH_CONF_OPTS += -Denable-libsndfile=0
 endif
 
 ifeq ($(BR2_PACKAGE_FLUIDSYNTH_PORTAUDIO),y)

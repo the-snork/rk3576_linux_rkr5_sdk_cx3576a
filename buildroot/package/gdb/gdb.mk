@@ -30,9 +30,7 @@ GDB_PRE_CONFIGURE_HOOKS += GDB_CONFIGURE_SYMLINK
 # For the host variant, we really want to build with XML support,
 # which is needed to read XML descriptions of target architectures. We
 # also need ncurses.
-# As for libiberty, gdb may use a system-installed one if present, so
-# we must ensure ours is installed first.
-HOST_GDB_DEPENDENCIES = host-expat host-libiberty host-ncurses host-zlib
+HOST_GDB_DEPENDENCIES = host-expat host-ncurses host-zlib
 
 # Disable building documentation
 GDB_MAKE_OPTS += MAKEINFO=true
@@ -56,8 +54,8 @@ GDB_DEPENDENCIES += host-flex host-bison
 HOST_GDB_DEPENDENCIES += host-flex host-bison
 endif
 
-# All newer versions of GDB need host-gmp
-HOST_GDB_DEPENDENCIES += host-gmp
+# All newer versions of GDB need host-gmp and host-mpfr
+HOST_GDB_DEPENDENCIES += host-gmp host-mpfr
 
 # When gdb sources are fetched from the binutils-gdb repository, they
 # also contain the binutils sources, but binutils shouldn't be built,
@@ -160,17 +158,10 @@ ifeq ($(BR2_PACKAGE_GDB_DEBUGGER),y)
 GDB_CONF_OPTS += \
 	--with-libgmp-prefix=$(STAGING_DIR)/usr
 GDB_DEPENDENCIES += gmp
-
-ifneq ($(BR2_STATIC_LIBS)$(BR2_PACKAGE_GDB_STATIC),)
-GDB_CONF_OPTS += --with-libgmp-type=static
-endif
 endif
 
-# Starting from GDB 14.x, mpfr is needed as a dependency to build full
-# gdb.
-# GDB fork from ARC GNU tools 2023.09 is based on GDB14 branch and so
-# requires MPFR as well.
-ifeq ($(BR2_GDB_VERSION_14)$(BR2_arc):$(BR2_PACKAGE_GDB_DEBUGGER),y:y)
+# mpfr is needed as a dependency to build full gdb
+ifeq ($(BR2_PACKAGE_GDB_DEBUGGER),y)
 GDB_DEPENDENCIES += mpfr
 GDB_CONF_OPTS += --with-mpfr=$(STAGING_DIR)
 else
@@ -191,7 +182,7 @@ GDB_CONF_OPTS += --disable-build-with-cxx
 endif
 
 # inprocess-agent can't be built statically
-ifneq ($(BR2_STATIC_LIBS)$(BR2_PACKAGE_GDB_STATIC),)
+ifeq ($(BR2_STATIC_LIBS),y)
 GDB_CONF_OPTS += --disable-inprocess-agent
 endif
 
@@ -223,22 +214,8 @@ ifeq ($(BR2_PACKAGE_XZ),y)
 GDB_CONF_OPTS += --with-lzma
 GDB_CONF_OPTS += --with-liblzma-prefix=$(STAGING_DIR)/usr
 GDB_DEPENDENCIES += xz
-
-ifneq ($(BR2_STATIC_LIBS)$(BR2_PACKAGE_GDB_STATIC),)
-GDB_CONF_OPTS += --with-liblzma-type=static
-endif
-
 else
 GDB_CONF_OPTS += --without-lzma
-endif
-
-ifeq ($(BR2_PACKAGE_GDB_STATIC),y)
-GDB_CONF_ENV += CFLAGS="$(TARGET_CFLAGS) -static"
-GDB_CONF_ENV += CXXFLAGS="$(TARGET_CXXFLAGS) -static"
-GDB_CONF_ENV += FCFLAGS="$(TARGET_FCFLAGS) -static"
-GDB_CONF_ENV += LDFLAGS="$(TARGET_LDFLAGS) -static"
-GDB_CONF_OPTS += --disable-shared
-GDB_CONF_OPTS += --without-expat
 endif
 
 ifeq ($(BR2_PACKAGE_GDB_PYTHON),)
@@ -285,17 +262,8 @@ HOST_GDB_CONF_OPTS = \
 	--with-system-zlib \
 	--with-curses \
 	--disable-source-highlight \
-	$(GDB_DISABLE_BINUTILS_CONF_OPTS)
-
-# GDB newer than 14.x need host-mpfr
-# GDB fork from ARC GNU tools 2023.09 is based on GDB14 branch and so
-# requires MPFR as well.
-ifeq ($(BR2_GDB_VERSION_14)$(BR2_arc),y)
-HOST_GDB_DEPENDENCIES += host-mpfr
-HOST_GDB_CONF_OPTS += --with-mpfr=$(HOST_DIR)
-else
-HOST_GDB_CONF_OPTS += --without-mpfr
-endif
+	$(GDB_DISABLE_BINUTILS_CONF_OPTS) \
+	--with-mpfr=$(HOST_DIR)
 
 ifeq ($(BR2_PACKAGE_HOST_GDB_TUI),y)
 HOST_GDB_CONF_OPTS += --enable-tui

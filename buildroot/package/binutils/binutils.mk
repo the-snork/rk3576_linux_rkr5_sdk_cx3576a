@@ -11,7 +11,7 @@ ifeq ($(BINUTILS_VERSION),)
 ifeq ($(BR2_arc),y)
 BINUTILS_VERSION = arc-2023.09-release
 else
-BINUTILS_VERSION = 2.40
+BINUTILS_VERSION = 2.43.1
 endif
 endif # BINUTILS_VERSION
 
@@ -57,10 +57,6 @@ BINUTILS_CONF_OPTS = \
 	$(BINUTILS_EXTRA_CONFIG_OPTIONS) \
 	--without-zstd
 
-ifeq ($(BR2_PACKAGE_BINUTILS_ENABLE_GOLD),y)
-BINUTILS_CONF_OPTS += --enable-gold
-endif
-
 ifeq ($(BR2_STATIC_LIBS),y)
 BINUTILS_CONF_OPTS += --disable-plugins
 endif
@@ -105,19 +101,9 @@ else
 HOST_BINUTILS_CONF_OPTS += --disable-gprofng
 endif
 
-ifeq ($(BR2_PACKAGE_BINUTILS_ENABLE_GOLD),y)
-HOST_BINUTILS_CONF_OPTS += --enable-gold
-endif
-
 # binutils run configure script of subdirs at make time, so ensure
 # our TARGET_CONFIGURE_ARGS are taken into consideration for those
 BINUTILS_MAKE_ENV = $(TARGET_CONFIGURE_ARGS)
-
-ifeq ($(BR2_PACKAGE_BINUTILS_HAS_NO_LIBSFRAME),)
-define BINUTILS_INSTALL_STAGING_LIBSFRAME
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D)/libsframe DESTDIR=$(STAGING_DIR) install
-endef
-endif
 
 # We just want libbfd, libiberty and libopcodes,
 # not the full-blown binutils in staging
@@ -125,7 +111,7 @@ define BINUTILS_INSTALL_STAGING_CMDS
 	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D)/bfd DESTDIR=$(STAGING_DIR) install
 	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D)/opcodes DESTDIR=$(STAGING_DIR) install
 	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D)/libiberty DESTDIR=$(STAGING_DIR) install
-	$(BINUTILS_INSTALL_STAGING_LIBSFRAME)
+	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D)/libsframe DESTDIR=$(STAGING_DIR) install
 endef
 
 # If we don't want full binutils on target

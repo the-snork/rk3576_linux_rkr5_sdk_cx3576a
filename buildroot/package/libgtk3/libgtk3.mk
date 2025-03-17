@@ -5,7 +5,7 @@
 ################################################################################
 
 LIBGTK3_VERSION_MAJOR = 3.24
-LIBGTK3_VERSION = $(LIBGTK3_VERSION_MAJOR).41
+LIBGTK3_VERSION = $(LIBGTK3_VERSION_MAJOR).43
 LIBGTK3_SOURCE = gtk+-$(LIBGTK3_VERSION).tar.xz
 LIBGTK3_SITE = https://download.gnome.org/sources/gtk+/$(LIBGTK3_VERSION_MAJOR)
 LIBGTK3_LICENSE = LGPL-2.0+
@@ -151,16 +151,6 @@ define LIBGTK3_UPDATE_ICON_CACHE
 			-exec $(HOST_DIR)/bin/gtk-update-icon-cache {} \;
 endef
 LIBGTK3_TARGET_FINALIZE_HOOKS += LIBGTK3_UPDATE_ICON_CACHE
-
-ifneq ($(BR2_PACKAGE_HAS_LIBEGL),)
-define LIBGTK3_GDK_GL_GLES
-	echo "export GDK_GL=gles" > $(@D)/gdk.sh
-	$(INSTALL) -D -m 0644 $(@D)/gdk.sh \
-		$(TARGET_DIR)/etc/profile.d/gdk.sh
-endef
-
-LIBGTK3_POST_INSTALL_TARGET_HOOKS += LIBGTK3_GDK_GL_GLES
-endif
 
 $(eval $(meson-package))
 $(eval $(host-generic-package))
