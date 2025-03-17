@@ -1030,10 +1030,14 @@ defconfig: $(BUILD_DIR)/buildroot-config/conf outputmakefile
 		), \
 		$(error "Can't find $@") \
 	); \
+	$(TOPDIR)/scripts/parse_defconfig.sh $${defconfig} \
+		$(BASE_DIR)/.config.in; \
 	$(COMMON_CONFIG_ENV) BR2_DEFCONFIG=$${defconfig} \
-		$< --defconfig=$${defconfig} $(CONFIG_CONFIG_IN)
+		$< --defconfig=$(BASE_DIR)/.config.in $(CONFIG_CONFIG_IN)
 
-update-defconfig: savedefconfig
+update-defconfig: $(BUILD_DIR)/buildroot-config/conf outputmakefile
+	$(TOPDIR)/scripts/update_defconfig.sh \
+		$(if $(DEFCONFIG),$(DEFCONFIG),$(CONFIG_DIR)/defconfig)
 
 savedefconfig: $(BUILD_DIR)/buildroot-config/conf outputmakefile
 	@$(COMMON_CONFIG_ENV) $< \
