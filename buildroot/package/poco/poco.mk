@@ -48,7 +48,7 @@ POCO_CONF_OPTS += --no-fpenvironment --no-wstring
 endif
 
 # architectures missing some FE_* in their fenv.h
-ifeq ($(BR2_sh4a)$(BR2_nios2),y)
+ifeq ($(BR2_sh4a),y)
 POCO_CONF_OPTS += --no-fpenvironment
 endif
 
@@ -68,7 +68,6 @@ define POCO_CONFIGURE_CMDS
 	(cd $(@D); $(TARGET_MAKE_ENV) ./configure \
 		--config=Linux \
 		--prefix=/usr \
-		--cflags=-std=c++14 \
 		--ldflags="$(POCO_LDFLAGS)" \
 		--omit="$(POCO_OMIT)" \
 		$(POCO_CONF_OPTS) \

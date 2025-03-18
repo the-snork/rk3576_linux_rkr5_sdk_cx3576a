@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-STRACE_VERSION = 6.7
+STRACE_VERSION = 6.13
 STRACE_SOURCE = strace-$(STRACE_VERSION).tar.xz
 STRACE_SITE = https://github.com/strace/strace/releases/download/v$(STRACE_VERSION)
 STRACE_LICENSE = LGPL-2.1+
@@ -25,16 +25,6 @@ STRACE_DEPENDENCIES += binutils
 STRACE_CONF_OPTS += --with-libiberty=check
 else
 STRACE_CONF_OPTS += --without-libiberty
-endif
-
-ifeq ($(BR2_PACKAGE_STRACE_STATIC),y)
-STRACE_CONF_OPTS += --enable-static
-STRACE_CONF_ENV += CFLAGS="$(TARGET_CFLAGS) -static"
-
-# HACK for libunwind libs
-ifeq ($(BR2_PACKAGE_LIBUNWIND)$(BR2_PACKAGE_XZ),yy)
-STRACE_CONF_ENV += LIBS="-llzma"
-endif
 endif
 
 ifeq ($(BR2_PACKAGE_PERL),)

@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-GPTFDISK_VERSION = 1.0.9
+GPTFDISK_VERSION = 1.0.10
 GPTFDISK_SITE = http://downloads.sourceforge.net/sourceforge/gptfdisk
 GPTFDISK_LICENSE = GPL-2.0+
 GPTFDISK_LICENSE_FILES = COPYING
@@ -24,20 +24,18 @@ ifeq ($(BR2_PACKAGE_GPTFDISK_CGDISK),y)
 GPTFDISK_DEPENDENCIES += ncurses
 endif
 
-ifneq ($(BR2_STATIC_LIBS)$(BR2_PACKAGE_GPTFDISK_STATIC),)
+ifeq ($(BR2_STATIC_LIBS),y)
 # gptfdisk dependencies may link against libiconv, so we need to do so
 # as well when linking statically
 ifeq ($(BR2_PACKAGE_LIBICONV),y)
 GPTFDISK_DEPENDENCIES += libiconv
 GPTFDISK_LDLIBS += -liconv
 endif
-
-GPTFDISK_CXX += $(TARGET_CXX) -static
 endif
 
 define GPTFDISK_BUILD_CMDS
 	$(TARGET_MAKE_ENV) $(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D) \
-		LDLIBS='$(GPTFDISK_LDLIBS)' CXX='$(GPTFDISK_CXX)' \
+		LDLIBS='$(GPTFDISK_LDLIBS)' \
 		SGDISK_LDLIBS='$(GPTFDISK_SGDISK_LDLIBS)' $(GPTFDISK_TARGETS_y)
 endef
 

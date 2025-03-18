@@ -4,7 +4,7 @@
 #
 
 EXEC="/usr/sbin/irqbalance"
-ARGS="--policyscript=/etc/irqbalance.d"
+ARGS=""
 PID="/var/run/irqbalance.pid"
 
 case "$1" in

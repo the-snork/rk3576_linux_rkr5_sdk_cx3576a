@@ -89,10 +89,19 @@ config BR2_ARM_CPU_ARMV7A
 
 config BR2_ARM_CPU_ARMV7M
 	bool
+	select BR2_ARCH_HAS_FDPIC_SUPPORT
 
 config BR2_ARM_CPU_ARMV8A
 	bool
 	select BR2_USE_MMU
+
+# Armv9.0-A base specification is a super-set of Armv8.5-A. It is
+# fully compatible with Armv8. This symbol is defined to allow checks
+# for doing Armv9 optimization. Armv8 is also selected for
+# compatibility.
+config BR2_ARM_CPU_ARMV9A
+	bool
+	select BR2_ARM_CPU_ARMV8A
 
 choice
 	prompt "Target Architecture Variant"
@@ -433,25 +442,19 @@ config BR2_vulcan
 comment "armv8.2a cores"
 config BR2_cortex_a55
 	bool "cortex-A55"
-	select BR2_ARM_CPU_HAS_ARM if !BR2_ARCH_IS_64
-	select BR2_ARM_CPU_HAS_NEON if !BR2_ARCH_IS_64
-	select BR2_ARM_CPU_HAS_THUMB2 if !BR2_ARCH_IS_64
+	depends on BR2_ARCH_IS_64
 	select BR2_ARM_CPU_HAS_FP_ARMV8
 	select BR2_ARM_CPU_ARMV8A
 	select BR2_ARCH_NEEDS_GCC_AT_LEAST_8
 config BR2_cortex_a75
 	bool "cortex-A75"
-	select BR2_ARM_CPU_HAS_ARM if !BR2_ARCH_IS_64
-	select BR2_ARM_CPU_HAS_NEON if !BR2_ARCH_IS_64
-	select BR2_ARM_CPU_HAS_THUMB2 if !BR2_ARCH_IS_64
+	depends on BR2_ARCH_IS_64
 	select BR2_ARM_CPU_HAS_FP_ARMV8
 	select BR2_ARM_CPU_ARMV8A
 	select BR2_ARCH_NEEDS_GCC_AT_LEAST_8
 config BR2_cortex_a75_a55
 	bool "cortex-A75/A55 big.LITTLE"
-	select BR2_ARM_CPU_HAS_ARM if !BR2_ARCH_IS_64
-	select BR2_ARM_CPU_HAS_NEON if !BR2_ARCH_IS_64
-	select BR2_ARM_CPU_HAS_THUMB2 if !BR2_ARCH_IS_64
+	depends on BR2_ARCH_IS_64
 	select BR2_ARM_CPU_HAS_FP_ARMV8
 	select BR2_ARM_CPU_ARMV8A
 	select BR2_ARCH_NEEDS_GCC_AT_LEAST_8
@@ -471,6 +474,14 @@ config BR2_cortex_a76_a55
 	select BR2_ARM_CPU_HAS_FP_ARMV8
 	select BR2_ARM_CPU_ARMV8A
 	select BR2_ARCH_NEEDS_GCC_AT_LEAST_9
+config BR2_cortex_a78
+	bool "cortex-A78"
+	select BR2_ARM_CPU_HAS_ARM if !BR2_ARCH_IS_64
+	select BR2_ARM_CPU_HAS_NEON if !BR2_ARCH_IS_64
+	select BR2_ARM_CPU_HAS_THUMB2 if !BR2_ARCH_IS_64
+	select BR2_ARM_CPU_HAS_FP_ARMV8
+	select BR2_ARM_CPU_ARMV8A
+	select BR2_ARCH_NEEDS_GCC_AT_LEAST_11
 config BR2_neoverse_n1
 	bool "neoverse-N1 (aka ares)"
 	select BR2_ARM_CPU_HAS_ARM if !BR2_ARCH_IS_64
@@ -493,6 +504,20 @@ config BR2_saphira
 	select BR2_ARM_CPU_HAS_FP_ARMV8
 	select BR2_ARM_CPU_ARMV8A
 	select BR2_ARCH_NEEDS_GCC_AT_LEAST_8
+
+comment "armv9.0a cores"
+config BR2_cortex_a710
+	bool "Cortex-A710 (aka matterhorn)"
+	depends on BR2_ARCH_IS_64
+	select BR2_ARM_CPU_HAS_FP_ARMV8
+	select BR2_ARM_CPU_ARMV9A
+	select BR2_ARCH_NEEDS_GCC_AT_LEAST_12
+config BR2_neoverse_n2
+	bool "neoverse-N2 (aka perseus)"
+	depends on BR2_ARCH_IS_64
+	select BR2_ARM_CPU_HAS_FP_ARMV8
+	select BR2_ARM_CPU_ARMV9A
+	select BR2_ARCH_NEEDS_GCC_AT_LEAST_11
 endchoice
 
 config BR2_ARM_ENABLE_NEON
@@ -574,9 +599,6 @@ endchoice
 
 choice
 	prompt "Floating point strategy"
-	default BR2_ARM_FPU_AUTO
-	default BR2_ARM_FPU_NEON_FP_ARMV8 if BR2_ARM_CPU_HAS_FP_ARMV8 && BR2_ARM_CPU_HAS_NEON
-	default BR2_ARM_FPU_NEON_VFPV4 if BR2_ARM_CPU_HAS_VFPV4 && BR2_ARM_CPU_HAS_NEON
 	default BR2_ARM_FPU_FP_ARMV8 if BR2_ARM_CPU_HAS_FP_ARMV8
 	default BR2_ARM_FPU_FPV5D16 if BR2_ARM_CPU_HAS_FPV5
 	default BR2_ARM_FPU_FPV4D16 if BR2_ARM_CPU_HAS_FPV4
@@ -594,12 +616,6 @@ config BR2_ARM_SOFT_FLOAT
 	  point. It should be used for ARM cores that do not include a
 	  Vector Floating Point unit, such as ARMv5 cores (ARM926 for
 	  example) or certain ARMv6 cores.
-
-config BR2_ARM_FPU_AUTO
-	bool "Auto"
-	depends on BR2_ARCH_NEEDS_GCC_AT_LEAST_8
-	help
-	  This option allows to use GCC's default floating point unit.
 
 config BR2_ARM_FPU_VFPV2
 	bool "VFPv2"
@@ -890,17 +906,20 @@ config BR2_GCC_TARGET_CPU
 	default "cortex-a75.cortex-a55"	if BR2_cortex_a75_a55
 	default "cortex-a76"	if BR2_cortex_a76
 	default "cortex-a76.cortex-a55"	if BR2_cortex_a76_a55
+	default "cortex-a78"	if BR2_cortex_a78
 	default "neoverse-n1"	if BR2_neoverse_n1
 	default "tsv110"	if BR2_tsv110
 	# armv8.4a
 	default "saphira"	if BR2_saphira
+	# armv9.0a
+	default "cortex-a710"	if BR2_cortex_a710
+	default "neoverse-n2"	if BR2_neoverse_n2
 
 config BR2_GCC_TARGET_ABI
 	default "aapcs-linux"	if BR2_arm || BR2_armeb
 	default "lp64"		if BR2_aarch64 || BR2_aarch64_be
 
 config BR2_GCC_TARGET_FPU
-	default ""		if BR2_ARM_FPU_AUTO
 	default "vfp"		if BR2_ARM_FPU_VFPV2
 	default "vfpv3"		if BR2_ARM_FPU_VFPV3
 	default "vfpv3-d16"	if BR2_ARM_FPU_VFPV3D16

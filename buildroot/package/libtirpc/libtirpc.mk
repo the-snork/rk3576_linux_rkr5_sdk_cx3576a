@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-LIBTIRPC_VERSION = 1.3.4
+LIBTIRPC_VERSION = 1.3.6
 LIBTIRPC_SOURCE = libtirpc-$(LIBTIRPC_VERSION).tar.bz2
 LIBTIRPC_SITE = http://downloads.sourceforge.net/project/libtirpc/libtirpc/$(LIBTIRPC_VERSION)
 LIBTIRPC_LICENSE = BSD-3-Clause
@@ -24,10 +24,6 @@ else
 LIBTIRPC_CONF_OPTS += --disable-gssapi
 endif
 HOST_LIBTIRPC_CONF_OPTS = --disable-gssapi
-
-ifeq ($(BR2_PACKAGE_LIBTIRPC_STATIC),y)
-LIBTIRPC_CONF_OPTS += --enable-static
-endif
 
 $(eval $(autotools-package))
 $(eval $(host-autotools-package))

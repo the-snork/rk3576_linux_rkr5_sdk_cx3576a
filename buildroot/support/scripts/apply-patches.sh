@@ -42,10 +42,11 @@ fi
 
 # Set directories from arguments, or use defaults.
 builddir=${1-.}
-[ -z "$1" ] || shift
-patchdir=$1
-[ -z "$1" ] || shift
+patchdir=${2-../kernel-patches}
+shift 2
 patchpattern=${@-*}
+
+export TAR=${TAR:-tar}
 
 # use a well defined sorting order
 export LC_COLLATE=C
@@ -54,7 +55,7 @@ if [ ! -d "${builddir}" ] ; then
     echo "Aborting.  '${builddir}' is not a directory."
     exit 1
 fi
-if [ "${patchdir}" ] && [ ! -d "${patchdir}" ] ; then
+if [ ! -d "${patchdir}" ] ; then
     echo "Aborting.  '${patchdir}' is not a directory."
     exit 1
 fi
@@ -64,36 +65,6 @@ fi
 # about rejects in builddir.
 find ${builddir}/ '(' -name '*.rej' -o -name '.*.rej' ')' -print0 | \
     xargs -0 -r rm -f
-
-function generate_git {
-    [ "$BR2_GEN_GIT" ] || return 0
-
-    APPLIED_PATCH="$1"
-
-    cd "${builddir}"
-
-    if [ ! -d .git ]; then
-        git init
-        echo -e "*" >> .gitignore
-        git add -f .gitignore *
-        git commit --no-edit -m "init"
-    elif [ "$APPLIED_PATCH" ]; then
-        # Remove backup files
-        find . '(' -name '*.orig' -o -name '.*.orig' ')' -exec rm -f {} \;
-
-        git am "$APPLIED_PATCH" --exclude "*" ||
-            git commit --allow-empty --no-edit -m "$(basename "$APPLIED_PATCH")"
-
-        git add -f *
-        git commit --allow-empty --amend --no-edit
-        rm -rf .git/rebase-apply/
-    fi
-
-    # Wait for auto gc
-    while [ -f .git/gc.pid ]; do sleep 1;done
-
-    cd -
-}
 
 function apply_patch {
     path="${1%%/}"
@@ -145,13 +116,11 @@ function apply_patch {
         exit 1
     fi
     echo "${path}/${patch}" >> ${builddir}/.applied_patches_list
-    ${uncomp} "${path}/$patch" | patch -g0 -p1 --no-backup-if-mismatch -d "${builddir}" -t -N $silent
+    ${uncomp} "${path}/$patch" | patch -F0 -g0 -p1 --no-backup-if-mismatch -d "${builddir}" -t -N $silent
     if [ $? != 0 ] ; then
         echo "Patch failed!  Please fix ${patch}!"
         exit 1
     fi
-
-    generate_git "${path}/$patch"
 }
 
 function scan_patchdir {
@@ -179,7 +148,7 @@ function scan_patchdir {
                 unpackedarchivedir="$builddir/.patches-$(basename $i)-unpacked"
                 rm -rf "$unpackedarchivedir" 2> /dev/null
                 mkdir "$unpackedarchivedir"
-                tar -C "$unpackedarchivedir" -xaf "${path}/$i"
+                ${TAR} -C "$unpackedarchivedir" -xaf "${path}/$i"
                 scan_patchdir "$unpackedarchivedir"
             else
                 apply_patch "$path" "$i"
@@ -187,9 +156,6 @@ function scan_patchdir {
         done
     fi
 }
-
-generate_git
-[ "${patchdir}" ] || exit 0
 
 touch ${builddir}/.applied_patches_list
 scan_patchdir "$patchdir" "$patchpattern"

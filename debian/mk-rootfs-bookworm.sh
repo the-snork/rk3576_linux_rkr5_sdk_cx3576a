@@ -59,13 +59,9 @@ for u in \$(ls /home/); do
 done
 
 echo "nameserver 8.8.8.8" >> /etc/resolv.conf
-echo "nameserver 114.114.114.114" >> /etc/resolv.conf
-echo "nameserver 119.29.29.29" >> /etc/resolv.conf
-echo "nameserver 223.5.5.5" >> /etc/resolv.conf
-echo "nameserver 180.76.76.76" >> /etc/resolv.conf
 
-echo "deb http://mirrors.ustc.edu.cn/debian/ bookworm-backports main contrib" >> /etc/apt/sources.list
-echo "deb-src http://mirrors.ustc.edu.cn/debian/ bookworm-backports main contrib" >> /etc/apt/sources.list
+echo "deb https://ftp.debian.org/debian/ bookworm-backports contrib main non-free non-free-firmware" >> /etc/apt/sources.list
+echo "deb-src https://ftp.debian.org/debian/ bookworm-backports contrib main non-free non-free-firmware" >> /etc/apt/sources.list
 
 apt-get update
 apt-get upgrade -y

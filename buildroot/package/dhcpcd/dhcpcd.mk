@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-DHCPCD_VERSION = 10.0.8
+DHCPCD_VERSION = 10.1.0
 DHCPCD_SOURCE = dhcpcd-$(DHCPCD_VERSION).tar.xz
 DHCPCD_SITE = https://github.com/NetworkConfiguration/dhcpcd/releases/download/v$(DHCPCD_VERSION)
 DHCPCD_DEPENDENCIES = host-pkgconf
@@ -15,9 +15,7 @@ DHCPCD_CPE_ID_VALID = YES
 DHCPCD_CONFIG_OPTS = \
 	--libexecdir=/lib/dhcpcd \
 	--os=linux \
-	--privsepuser=dhcpcd \
-	--disable-privsep \
-	--enable-debug
+	--privsepuser=dhcpcd
 
 DHCPCD_MAKE_OPTS = \
 	BINMODE=755

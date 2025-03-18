@@ -28,11 +28,8 @@ PERF_MAKE_FLAGS = \
 	NO_LIBPERL=1 \
 	NO_LIBPYTHON=1 \
 	NO_LIBBIONIC=1 \
-	NO_LIBTRACEEVENT=1
-
-ifeq ($(BR2_PACKAGE_LINUX_TOOLS_PERF_STATIC),y)
-PERF_MAKE_FLAGS += LDFLAGS="$(TARGET_LDFLAGS) -static"
-endif
+	NO_LIBTRACEEVENT=1 \
+	NO_SHELLCHECK=1
 
 # We need to pass an argument to ld for setting the emulation when
 # building for MIPS architecture, otherwise the default one will always
@@ -83,12 +80,6 @@ endif
 
 ifeq ($(BR2_PACKAGE_LIBUNWIND),y)
 PERF_DEPENDENCIES += libunwind
-
-ifeq ($(BR2_aarch64)$(BR2_PACKAGE_LINUX_TOOLS_PERF_STATIC)$(BR2_PACKAGE_XZ),yyy)
-# libunwind-aarch64.a requires symbols from liblzma.a
-PERF_MAKE_FLAGS += LIBUNWIND_LDFLAGS="-lunwind-aarch64 -llzma"
-endif
-
 else
 PERF_MAKE_FLAGS += NO_LIBUNWIND=1
 endif

@@ -11,11 +11,6 @@ config BR2_PACKAGE_BUSYBOX
 
 if BR2_PACKAGE_BUSYBOX
 
-config BR2_PACKAGE_BUSYBOX_STATIC
-	bool "Enable static"
-	default y if BR2_STATIC_LIBS
-	select BR2_PACKAGE_LIBTIRPC_STATIC if BR2_PACKAGE_LIBTIRPC
-
 config BR2_PACKAGE_BUSYBOX_CONFIG
 	string "BusyBox configuration file to use?"
 	default "package/busybox/busybox-minimal.config" if !BR2_USE_MMU
@@ -33,14 +28,6 @@ config BR2_PACKAGE_BUSYBOX_CONFIG_FRAGMENT_FILES
 	help
 	  A space-separated list of configuration fragment files,
 	  that will be merged to the main BusyBox configuration file.
-
-config BR2_PACKAGE_BUSYBOX_UNICODE
-	bool "Enable unicode support"
-	default y
-
-config BR2_PACKAGE_BUSYBOX_UNICODE_BYPASS
-	bool "Bypass unicode when printing"
-	default y
 
 # This option is not an option of Busybox, it can be selected even
 # if Busybox is not enabled.

@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-BASH_VERSION = 5.2.15
+BASH_VERSION = 5.2.37
 BASH_SITE = $(BR2_GNU_MIRROR)/bash
 BASH_DEPENDENCIES = ncurses readline host-bison
 BASH_LICENSE = GPL-3.0+
@@ -67,11 +67,5 @@ define BASH_ADD_BASH_TO_SHELLS
 		|| echo "/bin/bash" >> $(TARGET_DIR)/etc/shells
 endef
 BASH_TARGET_FINALIZE_HOOKS += BASH_ADD_BASH_TO_SHELLS
-
-define BASH_INSTALL_TARGET_ENV
-	$(INSTALL) -D -m 0644 $(BASH_PKGDIR)/bash.bashrc \
-		$(TARGET_DIR)/etc/bash.bashrc
-endef
-BASH_POST_INSTALL_TARGET_HOOKS += BASH_INSTALL_TARGET_ENV
 
 $(eval $(autotools-package))

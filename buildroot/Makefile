@@ -30,41 +30,11 @@ SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 	 else if [ -x /bin/bash ]; then echo /bin/bash; \
 	 else echo sh; fi; fi)
 
-O_LATEST := $(CURDIR)/output/latest
-DEFCONFIG = $(firstword $(filter %_defconfig,$(MAKECMDGOALS)))
-
 # Set O variable if not already done on the command line;
 # or avoid confusing packages that can use the O=<dir> syntax for out-of-tree
 # build by preventing it from being forwarded to sub-make calls.
 ifneq ("$(origin O)", "command line")
-ifneq ($(DEFCONFIG),)
-# Set O=output/<board> for defconfig
-O := $(patsubst %_defconfig,$(CURDIR)/output/%,$(DEFCONFIG))
-else
-# Prefer BUILDROOT_OUTPUT_DIR env and latest symlink
-O := $(BUILDROOT_OUTPUT_DIR)
-O := $(if $(O),$(O),$(realpath $(O_LATEST)))
-endif
-# Fallback to $(CURDIR)/output
-O := $(if $(O),$(O),$(CURDIR)/output)
-endif
-
-ifneq ($(BUILDROOT_OUTPUT_DIR),)
-ifneq ($(BUILDROOT_OUTPUT_DIR),$(O))
-$(warning "BUILDROOT_OUTPUT_DIR environment unmatched with output dir!")
-$(warning "BUILDROOT_OUTPUT_DIR: $(BUILDROOT_OUTPUT_DIR)")
-$(warning "Output dir: $(O)")
-$(error "Please unset it: unset BUILDROOT_OUTPUT_DIR")
-endif
-endif
-
-ifneq ($(DEFCONFIG),)
-ifeq ($(patsubst %_recovery_defconfig,,$(DEFCONFIG)),)
-O_LATEST := $(CURDIR)/output/recovery_latest
-endif
-
-$(shell rm -rf $(O_LATEST); mkdir -p $(CURDIR)/output)
-$(shell ln -rsf $(O) $(O_LATEST))
+O := $(CURDIR)/output
 endif
 
 # Check if the current Buildroot execution meets all the pre-requisites.
@@ -96,13 +66,14 @@ endif
 CANONICAL_CURDIR = $(realpath $(CURDIR))
 
 REQ_UMASK = 0022
+CUR_UMASK := $(shell umask)
 
 # Make sure O= is passed (with its absolute canonical path) everywhere the
 # toplevel makefile is called back.
 EXTRAMAKEARGS := O=$(CANONICAL_O)
 
 # Check Buildroot execution pre-requisites here.
-ifneq ($(shell umask):$(CURDIR):$(O),$(REQ_UMASK):$(CANONICAL_CURDIR):$(CANONICAL_O))
+ifneq ($(CUR_UMASK):$(CURDIR):$(O),$(REQ_UMASK):$(CANONICAL_CURDIR):$(CANONICAL_O))
 .PHONY: _all $(MAKECMDGOALS)
 
 $(MAKECMDGOALS): _all
@@ -111,6 +82,7 @@ $(MAKECMDGOALS): _all
 _all:
 	@umask $(REQ_UMASK) && \
 		$(MAKE) -C $(CANONICAL_CURDIR) --no-print-directory \
+			BR_ORIG_UMASK=$(CUR_UMASK) \
 			$(MAKECMDGOALS) $(EXTRAMAKEARGS)
 
 else # umask / $(CURDIR) / $(O)
@@ -120,9 +92,9 @@ all:
 .PHONY: all
 
 # Set and export the version string
-export BR2_VERSION := 2024.02
+export BR2_VERSION := 2025.02-rc2
 # Actual time the release is cut (for reproducible builds)
-BR2_VERSION_EPOCH = 1709640000
+BR2_VERSION_EPOCH = 1741860000
 
 # Save running make version since it's clobbered by the make package
 RUNNING_MAKE_VERSION := $(MAKE_VERSION)
@@ -302,9 +274,6 @@ CONFIG_SHELL := $(SHELL)
 
 export SHELL CONFIG_SHELL Q KBUILD_VERBOSE
 
-CUSTOM_KERNEL := $(CURDIR)/../kernel
-CUSTOM_KERNEL_VERSION := $(shell if [ -f "$(CUSTOM_KERNEL)/Makefile" ]; then grep -A 1 "^VERSION = " "$(CUSTOM_KERNEL)/Makefile" | cut -d' ' -f 3 | paste -sd'.'; fi)
-
 ifndef HOSTAR
 HOSTAR := ar
 endif
@@ -477,6 +446,7 @@ ZCAT := $(call qstrip,$(BR2_ZCAT))
 BZCAT := $(call qstrip,$(BR2_BZCAT))
 XZCAT := $(call qstrip,$(BR2_XZCAT))
 LZCAT := $(call qstrip,$(BR2_LZCAT))
+ZSTDCAT := $(call qstrip,$(BR2_ZSTDCAT))
 TAR_OPTIONS = $(call qstrip,$(BR2_TAR_OPTIONS)) -xf
 
 ifeq ($(BR2_PER_PACKAGE_DIRECTORIES),y)
@@ -484,13 +454,7 @@ HOST_DIR = $(if $(PKG),$(PER_PACKAGE_DIR)/$($(PKG)_NAME)/host,$(call qstrip,$(BR
 TARGET_DIR = $(if $(ROOTFS),$(ROOTFS_$(ROOTFS)_TARGET_DIR),$(if $(PKG),$(PER_PACKAGE_DIR)/$($(PKG)_NAME)/target,$(BASE_TARGET_DIR)))
 else
 HOST_DIR := $(call qstrip,$(BR2_HOST_DIR))
-TARGET_DIR = $(if $(ROOTFS),$(ROOTFS_$(ROOTFS)_TARGET_DIR),$(BASE_TARGET_DIR))$(if $($(PKG)_OEM_INSTALL),/oem)
-
-ifeq ($(BR2_PACKAGE_OEM),y)
-$(eval $(foreach pkg,$(call qstrip,$(BR2_PACKAGE_OEM_PACKAGES)), \
-	$(eval $(call UPPERCASE,$(pkg))_OEM_INSTALL := y)$(sep) \
-	$(eval OEM_DEPENDENCIES += $(pkg))$(sep)))
-endif
+TARGET_DIR = $(if $(ROOTFS),$(ROOTFS_$(ROOTFS)_TARGET_DIR),$(BASE_TARGET_DIR))
 endif
 
 ifneq ($(HOST_DIR),$(BASE_DIR)/host)
@@ -601,13 +565,11 @@ endif
 ifeq ($(BR_FORCE_CHECK_DEPENDENCIES),YES)
 
 define CHECK_ONE_DEPENDENCY
-ifneq ($(2)|$(BR2_LINUX_KERNEL),LINUX|)
 ifeq ($$($(2)_TYPE),target)
 ifneq ($$($$($(2)_KCONFIG_VAR)),y)
 $$(error $$($(2)_NAME) is in the dependency chain of $$($(1)_NAME) that \
 has added it to its _DEPENDENCIES variable without selecting it or \
 depending on it from Config.in)
-endif
 endif
 endif
 endef
@@ -625,21 +587,17 @@ $(BUILD_DIR)/buildroot-config/auto.conf: $(BR2_CONFIG)
 prepare: $(BUILD_DIR)/buildroot-config/auto.conf
 	@$(foreach s, $(call qstrip,$(BR2_ROOTFS_PRE_BUILD_SCRIPT)), \
 		$(call MESSAGE,"Executing pre-build script $(s)"); \
-		$(EXTRA_ENV) $(s) $(TARGET_DIR) $(call qstrip,$(BR2_ROOTFS_POST_SCRIPT_ARGS))$(sep))
+		$(EXTRA_ENV) $(s) \
+			$(TARGET_DIR) \
+			$(call qstrip,$(BR2_ROOTFS_POST_SCRIPT_ARGS)) \
+			$(call qstrip,$(BR2_ROOTFS_PRE_BUILD_SCRIPT_ARGS))$(sep))
 
 .PHONY: world
 world: target-post-image
 
 .PHONY: prepare-sdk
 prepare-sdk: world
-	@$(call MESSAGE,"Rendering the SDK relocatable")
-	PARALLEL_JOBS=$(PARALLEL_JOBS) \
-		PER_PACKAGE_DIR=$(PER_PACKAGE_DIR) \
-		$(TOPDIR)/support/scripts/fix-rpath host
-	PARALLEL_JOBS=$(PARALLEL_JOBS) \
-		PER_PACKAGE_DIR=$(PER_PACKAGE_DIR) \
-		$(TOPDIR)/support/scripts/fix-rpath staging
-	$(call ppd-fixup-paths,$(BASE_DIR))
+	@$(call MESSAGE,"Preparing the SDK")
 	$(INSTALL) -m 755 $(TOPDIR)/support/misc/relocate-sdk.sh $(HOST_DIR)/relocate-sdk.sh
 	mkdir -p $(HOST_DIR)/share/buildroot
 	echo $(HOST_DIR) > $(HOST_DIR)/share/buildroot/sdk-location
@@ -757,6 +715,13 @@ STAGING_DIR_FILES_LISTS = $(sort $(wildcard $(BUILD_DIR)/*/.files-list-staging.t
 host-finalize: $(PACKAGES) $(HOST_DIR) $(HOST_DIR_SYMLINK)
 	@$(call MESSAGE,"Finalizing host directory")
 	$(call per-package-rsync,$(sort $(PACKAGES)),host,$(HOST_DIR),copy)
+	$(Q)PARALLEL_JOBS=$(PARALLEL_JOBS) \
+		PER_PACKAGE_DIR=$(PER_PACKAGE_DIR) \
+		$(TOPDIR)/support/scripts/fix-rpath host
+	$(Q)PARALLEL_JOBS=$(PARALLEL_JOBS) \
+		PER_PACKAGE_DIR=$(PER_PACKAGE_DIR) \
+		$(TOPDIR)/support/scripts/fix-rpath staging
+	$(call ppd-fixup-paths,$(BASE_DIR))
 
 .PHONY: staging-finalize
 staging-finalize: $(STAGING_DIR_SYMLINK)
@@ -766,18 +731,13 @@ target-finalize: $(PACKAGES) $(TARGET_DIR) host-finalize
 	@$(call MESSAGE,"Finalizing target directory")
 	$(call per-package-rsync,$(sort $(PACKAGES)),target,$(TARGET_DIR),copy)
 	$(foreach hook,$(TARGET_FINALIZE_HOOKS),$($(hook))$(sep))
-	rm -rf $(TARGET_DIR)/usr/share/aclocal \
+	rm -rf $(TARGET_DIR)/usr/include $(TARGET_DIR)/usr/share/aclocal \
+		$(TARGET_DIR)/usr/lib/pkgconfig $(TARGET_DIR)/usr/share/pkgconfig \
 		$(TARGET_DIR)/usr/lib/cmake $(TARGET_DIR)/usr/share/cmake \
 		$(TARGET_DIR)/usr/lib/rpm $(TARGET_DIR)/usr/doc
 	find $(TARGET_DIR)/usr/{lib,share}/ -name '*.cmake' -print0 | xargs -0 rm -f
 	find $(TARGET_DIR)/lib/ $(TARGET_DIR)/usr/lib/ $(TARGET_DIR)/usr/libexec/ \
-		\( -name '*.la' -o -name '*.prl' \) -print0 | xargs -0 rm -f
-ifneq ($(BR2_PACKAGE_GCC_TARGET),y)
-	rm -rf $(TARGET_DIR)/usr/include \
-		$(TARGET_DIR)/usr/lib/pkgconfig $(TARGET_DIR)/usr/share/pkgconfig
-	find $(TARGET_DIR)/lib/ $(TARGET_DIR)/usr/lib/ $(TARGET_DIR)/usr/libexec/ \
-		-name '*.a' -print0 | xargs -0 rm -f
-endif
+		\( -name '*.a' -o -name '*.la' -o -name '*.prl' \) -print0 | xargs -0 rm -f
 ifneq ($(BR2_PACKAGE_GDB),y)
 	rm -rf $(TARGET_DIR)/usr/share/gdb
 endif
@@ -798,12 +758,11 @@ ifneq ($(BR2_ENABLE_DEBUG):$(BR2_STRIP_strip),y:)
 endif
 	$(STRIP_FIND_CMD) | xargs -0 $(STRIPCMD) 2>/dev/null || true
 	$(STRIP_FIND_SPECIAL_LIBS_CMD) | xargs -0 -r $(STRIPCMD) $(STRIP_STRIP_DEBUG) 2>/dev/null || true
-ifneq ($(BR2_PACKAGE_GLIBC_GEN_LD_CACHE),y)
+
 	test -f $(TARGET_DIR)/etc/ld.so.conf && \
 		{ echo "ERROR: we shouldn't have a /etc/ld.so.conf file"; exit 1; } || true
 	test -d $(TARGET_DIR)/etc/ld.so.conf.d && \
 		{ echo "ERROR: we shouldn't have a /etc/ld.so.conf.d directory"; exit 1; } || true
-endif
 	mkdir -p $(TARGET_DIR)/etc
 	( \
 		echo "NAME=Buildroot"; \
@@ -848,7 +807,10 @@ endif # merged /usr
 
 	$(foreach s, $(call qstrip,$(BR2_ROOTFS_POST_BUILD_SCRIPT)), \
 		@$(call MESSAGE,"Executing post-build script $(s)")$(sep) \
-		$(Q)$(EXTRA_ENV) $(s) $(TARGET_DIR) $(call qstrip,$(BR2_ROOTFS_POST_SCRIPT_ARGS))$(sep))
+		$(Q)$(EXTRA_ENV) $(s) \
+			$(TARGET_DIR) \
+			$(call qstrip,$(BR2_ROOTFS_POST_SCRIPT_ARGS)) \
+			$(call qstrip,$(BR2_ROOTFS_POST_BUILD_SCRIPT_ARGS))$(sep))
 
 	touch $(TARGET_DIR)/usr
 
@@ -866,7 +828,10 @@ target-post-image: $(TARGETS_ROOTFS) target-finalize staging-finalize
 	$(Q)mkdir -p $(BINARIES_DIR)
 	@$(foreach s, $(call qstrip,$(BR2_ROOTFS_POST_IMAGE_SCRIPT)), \
 		$(call MESSAGE,"Executing post-image script $(s)"); \
-		$(EXTRA_ENV) $(s) $(BINARIES_DIR) $(call qstrip,$(BR2_ROOTFS_POST_SCRIPT_ARGS))$(sep))
+		$(EXTRA_ENV) $(s) \
+			$(BINARIES_DIR) \
+			$(call qstrip,$(BR2_ROOTFS_POST_SCRIPT_ARGS)) \
+			$(call qstrip,$(BR2_ROOTFS_POST_IMAGE_SCRIPT_ARGS))$(sep))
 
 .PHONY: source
 source: $(foreach p,$(PACKAGES),$(p)-all-source)
@@ -1015,8 +980,7 @@ COMMON_CONFIG_ENV = \
 	BR2_CONFIG=$(BR2_CONFIG) \
 	HOST_GCC_VERSION="$(HOSTCC_VERSION)" \
 	BASE_DIR=$(BASE_DIR) \
-	SKIP_LEGACY= \
-	CUSTOM_KERNEL_VERSION="$(CUSTOM_KERNEL_VERSION)"
+	SKIP_LEGACY=
 
 xconfig: $(BUILD_DIR)/buildroot-config/qconf outputmakefile
 	@$(COMMON_CONFIG_ENV) $< $(CONFIG_CONFIG_IN)
@@ -1187,7 +1151,7 @@ help:
 	@echo '  defconfig              - New config with default answer to all options;'
 	@echo '                             BR2_DEFCONFIG, if set on the command line, is used as input'
 	@echo '  savedefconfig          - Save current config to BR2_DEFCONFIG (minimal config)'
-	@echo '  update-defconfig       - Same as savedefconfig, but with fragments'
+	@echo '  update-defconfig       - Same as savedefconfig'
 	@echo '  allyesconfig           - New config where all options are accepted with yes'
 	@echo '  allnoconfig            - New config where all options are answered with no'
 	@echo '  alldefconfig           - New config where all options are set to default'
@@ -1212,6 +1176,9 @@ help:
 	@echo '                         - Recursively list packages which have <pkg> as a dependency'
 	@echo '  <pkg>-graph-depends    - Generate a graph of <pkg>'\''s dependencies'
 	@echo '  <pkg>-graph-rdepends   - Generate a graph of <pkg>'\''s reverse dependencies'
+	@echo '  <pkg>-graph-both-depends'
+	@echo '                         - Generate a graph of both <pkg>'\''s forward and'
+	@echo '                           reverse dependencies.'
 	@echo '  <pkg>-dirclean         - Remove <pkg> build directory'
 	@echo '  <pkg>-reconfigure      - Restart the build from the configure step'
 	@echo '  <pkg>-rebuild          - Restart the build from the build step'

@@ -20,8 +20,7 @@ config BR2_PACKAGE_GLIBC_ARCH_SUPPORTS
 	default y if BR2_sparc64
 	default y if BR2_x86_64
 	default y if BR2_microblaze
-	default y if BR2_nios2
-	default y if BR2_arc && BR2_ARC_ATOMIC_EXT
+	default y if BR2_arc && BR2_ARC_ATOMIC_EXT && !BR2_arc750d && !BR2_arc770d
 	depends on !BR2_POWERPC_CPU_HAS_SPE
 	depends on BR2_RISCV_ISA_RVA || !BR2_riscv
 	depends on BR2_USE_MMU
@@ -52,18 +51,6 @@ config BR2_PACKAGE_GLIBC
 	help
 	  https://www.gnu.org/software/libc/
 
-choice
-        prompt "glibc version"
-        default BR2_PACKAGE_GLIBC_LATEST
-
-config BR2_PACKAGE_GLIBC_LATEST
-        bool "glibc latest"
-
-config BR2_PACKAGE_GLIBC_2_28
-        bool "glibc 2.28"
-
-endchoice
-
 config BR2_PACKAGE_GLIBC_KERNEL_COMPAT
 	bool "Enable compatibility shims to run on older kernels"
 	help
@@ -81,9 +68,5 @@ config BR2_PACKAGE_GLIBC_UTILS
 	help
 	  Enabling this option will compile and install the getconf,
 	  ldconfig, ldd and locale glibc utilities for the target.
-
-config BR2_PACKAGE_GLIBC_GEN_LD_CACHE
-	bool "glibc generate ld.so.cache"
-	depends on BR2_PACKAGE_HOST_QEMU_LINUX_USER_MODE
 
 endif # BR2_TOOLCHAIN_BUILDROOT_GLIBC

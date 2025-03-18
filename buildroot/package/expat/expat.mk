@@ -4,9 +4,8 @@
 #
 ################################################################################
 
-EXPAT_VERSION = 2.6.1
-EXPAT_VERSION_UNDERSCORE = $(subst .,_,$(EXPAT_VERSION))
-EXPAT_SITE = https://github.com/libexpat/libexpat/releases/download/R_$(EXPAT_VERSION_UNDERSCORE)
+EXPAT_VERSION = 2.6.4
+EXPAT_SITE = https://github.com/libexpat/libexpat/releases/download/R_$(subst .,_,$(EXPAT_VERSION))
 EXPAT_SOURCE = expat-$(EXPAT_VERSION).tar.xz
 EXPAT_INSTALL_STAGING = YES
 EXPAT_LICENSE = MIT

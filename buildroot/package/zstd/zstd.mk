@@ -4,13 +4,16 @@
 #
 ################################################################################
 
-ZSTD_VERSION = 1.5.5
+ZSTD_VERSION = 1.5.7
 ZSTD_SITE = https://github.com/facebook/zstd/releases/download/v$(ZSTD_VERSION)
 ZSTD_INSTALL_STAGING = YES
 ZSTD_LICENSE = BSD-3-Clause or GPL-2.0
 ZSTD_LICENSE_FILES = LICENSE COPYING
 ZSTD_CPE_ID_VENDOR = facebook
 ZSTD_CPE_ID_PRODUCT = zstandard
+
+# The package is a dependency to ccache so ccache cannot be a dependency
+HOST_ZSTD_ADD_CCACHE_DEPENDENCY = NO
 
 ZSTD_OPTS += PREFIX=/usr
 ZSTD_OPTS += ZSTD_LEGACY_SUPPORT=0
@@ -39,7 +42,7 @@ endif
 ZSTD_OPTS += MOREFLAGS="$(TARGET_OPTIMIZATION)"
 
 ZSTD_BUILD_LIBS_BASENAMES = libzstd.pc
-ifneq ($(BR2_STATIC_LIBS)$(BR2_PACKAGE_ZSTD_STATIC),)
+ifeq ($(BR2_STATIC_LIBS),y)
 ZSTD_BUILD_LIBS_BASENAMES += libzstd.a
 ZSTD_INSTALL_LIBS = install-static
 else ifeq ($(BR2_SHARED_LIBS),y)
@@ -51,7 +54,7 @@ ZSTD_INSTALL_LIBS = install-static install-shared
 endif
 
 # prefer zstd-dll unless no library is available
-ifneq ($(BR2_STATIC_LIBS)$(BR2_PACKAGE_ZSTD_STATIC),)
+ifeq ($(BR2_STATIC_LIBS),y)
 ZSTD_BUILD_PROG_TARGET = zstd-release
 else
 ZSTD_BUILD_PROG_TARGET = zstd-dll
@@ -69,7 +72,7 @@ else
 ZSTD_OPTS += HAVE_THREAD=0
 ZSTD_BUILD_LIBS_THREAD_SUFFIX = -nomt
 endif
-# check-package disable OverriddenVariable - override intended
+
 ZSTD_BUILD_LIBS = \
 	$(addsuffix -release, \
 		$(addsuffix $(ZSTD_BUILD_LIBS_THREAD_SUFFIX), \
@@ -94,9 +97,6 @@ define ZSTD_INSTALL_TARGET_CMDS
 	$(TARGET_MAKE_ENV) $(TARGET_CONFIGURE_OPTS) $(MAKE) $(ZSTD_OPTS) \
 		DESTDIR=$(TARGET_DIR) -C $(@D)/lib $(ZSTD_INSTALL_LIBS)
 endef
-
-HOST_ZSTD_DEPENDENCIES += host-lz4
-HOST_ZSTD_OPTS += HAVE_LZ4=1
 
 HOST_ZSTD_OPTS += PREFIX=$(HOST_DIR)
 HOST_ZSTD_ENV = $(HOST_MAKE_ENV) $(HOST_CONFIGURE_OPTS)
